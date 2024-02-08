@@ -125,11 +125,11 @@ class Students(Controller):
 
         if not not_ok:
             self.app.console.print(
-                Markdown('# All users have home directories')
+                Panel('[bold green]:green_circle: All users have home directories [/]')
             )
         else:
             self.app.console.print(
-                    Panel('[bold red]:x: :x: The following users have no home directories :x: :x:[/]')
+                Panel('[bold red]:x: :x: The following users have no home directories :x: :x:[/]')
             )
             context = dict()
             context['students'] = not_ok
