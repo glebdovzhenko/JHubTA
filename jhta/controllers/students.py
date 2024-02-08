@@ -1,6 +1,8 @@
 from cement import Controller, ex
 from rich.prompt import Prompt
+from rich.panel import Panel
 from tinydb import Query
+import os
 
 
 class Students(Controller):
@@ -112,3 +114,31 @@ class Students(Controller):
             tb = self.app.db.table('students')
             tb.insert(student)
     
+    @ex(help='check the database status')
+    def check(self):
+        ok, not_ok = [], []
+        for st in self.app.db.table('students').all():
+            if os.path.exists(os.path.join('/home', st['login'])):
+                ok.append(st)
+            else:
+                not_ok.append(st)
+
+        if not not_ok:
+            self.app.console.print(
+                Markdown('# All users have home directories')
+            )
+        else:
+            self.app.console.print(
+                    Panel('[bold red]:x: :x: The following users have no home directories :x: :x:[/]')
+            )
+            context = dict()
+            context['students'] = not_ok
+            context['group_ids'] = {x['group_id']: x['group'] for x in context['students']}
+        
+            self.app.console.print(
+                self.app.render(
+                    context, 'students-list.py', out=None
+            ))
+
+        ok, not_ok = [], []
+
