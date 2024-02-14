@@ -2,7 +2,7 @@ from cement import Controller, ex
 from rich.prompt import Prompt
 from rich.panel import Panel
 from tinydb import Query
-from git import Repo
+from git import Repo, exc
 import os
 
 
@@ -164,7 +164,7 @@ class Students(Controller):
             try:
                 _ = Repo(os.path.join('/home', st['login'])).git_dir
                 ok.append(st)
-            except git.exc.InvalidGitRepositoryError:
+            except exc.InvalidGitRepositoryError:
                 not_ok.append(st)
         
         if not not_ok:
