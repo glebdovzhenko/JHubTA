@@ -10,6 +10,7 @@ class Students(Controller):
         label = 'students'
         stacked_on = 'base'
         stacked_type = 'nested'
+        help = 'students list manipulation'
 
     @ex(help='list all students')
     def list(self):
@@ -22,32 +23,6 @@ class Students(Controller):
             self.app.render(
                 context, 'students-list.py', out=None
         ))
-
-    @ex(help='fill students table with placeholders')
-    def init(self):
-        self.app.db.drop_table('students')
-        tb = self.app.db.table('students')
-        tb.insert({
-            'name': 'Иван Иванович',
-            'surname': 'Иванов',
-            'group': 'ГР-000',
-            'group_id': 'TEST',
-            'login': 'jupyter-gr-000-ivanov'
-        })
-        tb.insert({
-            'name': 'Пётр Петрович',
-            'surname': 'Петров',
-            'group': 'ГР-000',
-            'group_id': 'TEST',
-            'login': 'jupyter-gr-000-petrov'
-        })
-        tb.insert({
-            'name': 'Сидор Сидорович',
-            'surname': 'Сидоров',
-            'group': 'ГР-000',
-            'group_id': 'TEST',
-            'login': 'jupyter-gr-000-sidorov'
-        })
 
     @ex(help='add a student',
         arguments=[
@@ -124,17 +99,22 @@ class Students(Controller):
                 not_ok.append(st)
 
         if not not_ok:
-            self.app.console.print(
-                Panel('[bold green]:green_circle: All users have home directories [/]')
-            )
-        else:
-            self.app.console.print(
-                Panel('[bold red]:x: :x: The following users have no home directories :x: :x:[/]')
-            )
             context = dict()
+            context['msg'] = 'All users have home directories'
+            self.app.console.print(
+                self.app.render(
+                    context, 'ok-msg.py', out=None
+            ))
+        else:
+            context = dict()
+            context['msg'] = 'The following users have no home directories'
             context['students'] = not_ok
             context['group_ids'] = {x['group_id']: x['group'] for x in context['students']}
-        
+
+            self.app.console.print(
+                self.app.render(
+                    context, 'err-msg.py', out=None
+            ))
             self.app.console.print(
                 self.app.render(
                     context, 'students-list.py', out=None
@@ -142,3 +122,29 @@ class Students(Controller):
 
         ok, not_ok = [], []
 
+    @ex(help='query students list',
+        arguments=[
+            ([ '-g', '--group-id' ],
+             {'help': 'group id',
+              'action': 'store',
+              'dest': 'group_id'}),
+            ([ '-n', '--name' ],
+             {'help': 'name',
+              'action': 'store',
+              'dest': 'name'}),
+            ([ '-sn', '--surname' ],
+             {'help': 'surname',
+              'action': 'store',
+              'dest': 'surname'}),
+            ([ '-l', '--login' ],
+             {'help': 'login',
+              'action': 'store',
+              'dest': 'login'}),
+        ])
+    def query(self):
+        context = dict()
+        context['msg'] = 'Method not implemented'
+        self.app.console.print(
+                self.app.render(
+                    context, 'err-msg.py', out=None
+        ))

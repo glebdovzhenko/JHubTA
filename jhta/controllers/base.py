@@ -2,6 +2,8 @@
 from cement import Controller, ex
 from cement.utils.version import get_version_banner
 from ..core.version import get_version
+from rich.panel import Panel
+
 
 VERSION_BANNER = """
 Assists in commont tasks while teaching a class using JupyterHub %s
@@ -33,29 +35,35 @@ class Base(Controller):
 
         self.app.args.print_help()
 
-
-    @ex(
-        help='example sub command1',
-
-        # sub-command level arguments. ex: 'jhta command1 --foo bar'
+    @ex(help='deploys a selected filename to a list of students',
         arguments=[
-            ### add a sample foo option under subcommand namespace
-            ( [ '-f', '--foo' ],
-              { 'help' : 'notorious foo option',
-                'action'  : 'store',
-                'dest' : 'foo' } ),
-        ],
-    )
-    def command1(self):
-        """Example sub-command."""
-
-        data = {
-            'foo' : 'bar',
-        }
-
-        ### do something with arguments
-        if self.app.pargs.foo is not None:
-            data['foo'] = self.app.pargs.foo
-
-        # self.app.render(data, 'command1.jinja2')
+            ([ '-f', '--file' ],
+             {'help': 'which file to deploy',
+              'action': 'store',
+              'dest': 'file'}),
+            ([ '-g', '--group-id' ],
+             {'help': 'group id',
+              'action': 'store',
+              'dest': 'group_id'}),
+            ([ '-n', '--name' ],
+             {'help': 'name',
+              'action': 'store',
+              'dest': 'name'}),
+            ([ '-sn', '--surname' ],
+             {'help': 'surname',
+              'action': 'store',
+              'dest': 'surname'}),
+            ([ '-l', '--login' ],
+             {'help': 'login',
+              'action': 'store',
+              'dest': 'login'}),
+        ])
+    def deploy(self):
+        if self.app.pargs.file is None:
+            self.app.console.print(Panel('[red] A filename must be provided'))
+        if self.app.pargs.group_id is not None:
+            pass
+        # g_id_match = self.app.db.table('students').search(
+        #     Query().group_id == g_id
+        # )
 
