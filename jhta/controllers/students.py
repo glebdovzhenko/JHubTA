@@ -1,4 +1,4 @@
-from cement import Controller, ex
+from cement import Controller, ex, shell
 from rich.prompt import Prompt
 from rich.panel import Panel
 from tinydb import Query
@@ -116,6 +116,20 @@ class Students(Controller):
         if res == 'y':
             tb = self.app.db.table('students')
             tb.insert(student)
+
+    @ex(help='Initiates a user repository')
+    def init_repo(self):
+        for st in self._query():
+            shell.cmd(
+                ' && '.join((
+                    'su %s' % st['login'],
+                    'git init -b %s' % st['login'],
+                    'git remote add origin /srv/git/studentlab.git',
+                    'git config user.email %s@fake.faux' % st['login'],
+                    'git config user.name %s' % st['login']
+                )), 
+                capture=False
+            )
     
     @ex(help='check the database status')
     def check(self):
