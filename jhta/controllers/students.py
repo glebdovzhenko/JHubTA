@@ -2,6 +2,7 @@ from cement import Controller, ex
 from rich.prompt import Prompt
 from rich.panel import Panel
 from tinydb import Query
+from git import Repo
 import os
 
 
@@ -11,20 +12,6 @@ class Students(Controller):
         stacked_on = 'base'
         stacked_type = 'nested'
         help = 'students list manipulation'
-
-    @ex(help='list all students')
-    def list(self):
-        tb = self.app.db.table('students')
-        context = dict()
-        context['students'] = tb.all()
-        context['group_ids'] = {x['group_id']: x['group'] for x in context['students']}
-        
-        self.app.console.print(
-            self.app.render(
-                context, 'students-list.py', out=None
-        ))
-
-    @ex(help='add a student',
         arguments=[
             ([ '-g', '--group-id' ],
              {'help': 'group id',
@@ -42,7 +29,45 @@ class Students(Controller):
              {'help': 'login',
               'action': 'store',
               'dest': 'login'}),
-        ])
+        ]
+
+    def _query(self):
+        tb = self.app.db.table('students')
+
+        if self.app.pargs.group_id is not None:
+            q1 = Query().group_id == self.app.pargs.group_id
+        else:
+            q1 = Query().group_id.exists()
+
+        if self.app.pargs.name is not None:
+            q2 = Query().name == self.app.pargs.name
+        else:
+            q2 = Query().name.exists()
+
+        if self.app.pargs.surname is not None:
+            q3 = Query().surname == self.app.pargs.surname
+        else:
+            q3 = Query().surname.exists()
+
+        if self.app.pargs.login is not None:
+            q4 = Query().login == self.app.pargs.login
+        else:
+            q4 = Query().login.exists()
+
+        return tb.search(q1 & q2 & q3 & q4)
+
+    @ex(help='list all students')
+    def list(self):
+        context = dict()
+        context['students'] =  self._query()
+        context['group_ids'] = {x['group_id']: x['group'] for x in context['students']}
+        
+        self.app.console.print(
+            self.app.render(
+                context, 'students-list.py', out=None
+        ))
+
+    @ex(help='add a student')
     def add(self):
         if self.app.pargs.group_id is not None:
             g_id = self.app.pargs.group_id
@@ -91,8 +116,12 @@ class Students(Controller):
     
     @ex(help='check the database status')
     def check(self):
+        home_ok, home_not_ok = self.check_home()
+        self.check_repo(home_ok)
+
+    def check_home(self):
         ok, not_ok = [], []
-        for st in self.app.db.table('students').all():
+        for st in self._query():
             if os.path.exists(os.path.join('/home', st['login'])):
                 ok.append(st)
             else:
@@ -119,32 +148,15 @@ class Students(Controller):
                 self.app.render(
                     context, 'students-list.py', out=None
             ))
+        return ok, not_ok
 
+    def check_repo(self, usr_list=None):
+        if usr_list is None:
+            usr_list = self._query()
+        
         ok, not_ok = [], []
+        for st in usr_list:
+           print(Repo(os.path.join('/home', st['login'])))
 
-    @ex(help='query students list',
-        arguments=[
-            ([ '-g', '--group-id' ],
-             {'help': 'group id',
-              'action': 'store',
-              'dest': 'group_id'}),
-            ([ '-n', '--name' ],
-             {'help': 'name',
-              'action': 'store',
-              'dest': 'name'}),
-            ([ '-sn', '--surname' ],
-             {'help': 'surname',
-              'action': 'store',
-              'dest': 'surname'}),
-            ([ '-l', '--login' ],
-             {'help': 'login',
-              'action': 'store',
-              'dest': 'login'}),
-        ])
-    def query(self):
-        context = dict()
-        context['msg'] = 'Method not implemented'
-        self.app.console.print(
-                self.app.render(
-                    context, 'err-msg.py', out=None
-        ))
+
+

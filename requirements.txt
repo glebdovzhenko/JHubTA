@@ -4,3 +4,4 @@ cement[yaml]
 cement[colorlog]
 tinydb
 rich
+GitPython
