@@ -60,7 +60,9 @@ class Students(Controller):
     def list(self):
         context = dict()
         context['students'] =  self._query()
-        context['group_ids'] = {x['group_id']: x['group'] for x in context['students']}
+        context['group_ids'] = {
+            x['group_id']: x['group'] for x in context['students']
+        }
         
         self.app.console.print(
             self.app.render(
@@ -109,6 +111,7 @@ class Students(Controller):
             self.app.render(
                 student, 'student-info.py', out=None
         ))
+
         res = Prompt.ask('[bold]Submit?[/]', console=self.app.console)
         if res == 'y':
             tb = self.app.db.table('students')
@@ -117,7 +120,7 @@ class Students(Controller):
     @ex(help='check the database status')
     def check(self):
         home_ok, home_not_ok = self.check_home()
-        self.check_repo(home_ok)
+        git_ok, git_not_ok = self.check_repo(home_ok)
 
     def check_home(self):
         ok, not_ok = [], []
@@ -138,7 +141,9 @@ class Students(Controller):
             context = dict()
             context['msg'] = 'The following users have no home directories'
             context['students'] = not_ok
-            context['group_ids'] = {x['group_id']: x['group'] for x in context['students']}
+            context['group_ids'] = {
+                x['group_id']: x['group'] for x in context['students']
+            }
 
             self.app.console.print(
                 self.app.render(
@@ -156,7 +161,34 @@ class Students(Controller):
         
         ok, not_ok = [], []
         for st in usr_list:
-           print(Repo(os.path.join('/home', st['login'])))
+            try:
+                _ = Repo(os.path.join('/home', st['login'])).git_dir
+                ok.append(st)
+            except git.exc.InvalidGitRepositoryError:
+                not_ok.append(st)
+        
+        if not not_ok:
+            context = dict()
+            context['msg'] = 'All users have valid git repos'
+            self.app.console.print(
+                self.app.render(
+                    context, 'ok-msg.py', out=None
+            ))
+        else:
+            context = dict()
+            context['msg'] = 'The following users have no git repos'
+            context['students'] = not_ok
+            context['group_ids'] = {
+                x['group_id']: x['group'] for x in context['students']
+            }
 
-
+            self.app.console.print(
+                self.app.render(
+                    context, 'err-msg.py', out=None
+            ))
+            self.app.console.print(
+                self.app.render(
+                    context, 'students-list.py', out=None
+            ))
+        return ok, not_ok
 
