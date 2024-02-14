@@ -134,7 +134,7 @@ class Students(Controller):
 
     @ex(help='Commits and pushes all changes to the remote')
     def collect(self):
-        mask = '.ipynb'
+        mask = '*.ipynb'
         for st in self._query():
             shell.cmd(
                 ' && '.join((
