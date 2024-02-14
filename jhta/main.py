@@ -11,6 +11,7 @@ from .hooks.extend_rich import extend_rich
 # configuration defaults
 CONFIG = init_defaults('jhta')
 CONFIG['jhta']['db_file'] = '~/.jhta/db.json'
+CONFIG['jhta']['repo_remote'] = '/srv/git/studentlab.git'
 
 
 class JHTApp(App):

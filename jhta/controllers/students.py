@@ -123,11 +123,10 @@ class Students(Controller):
             shell.cmd(
                 ' && '.join((
                     'cd /home/%s' % st['login'],
-                    'su %s' % st['login'],
-                    'git init -b %s' % st['login'],
-                    'git remote add origin /srv/git/studentlab.git',
-                    'git config user.email %s@fake.faux' % st['login'],
-                    'git config user.name %s' % st['login']
+                    'su %s -c \'git init -b %s\'' % (st['login'], st['login']),
+                    'su %s -c \'git remote add origin %s\'' % (st['login'], self.app.config.get('jhta', 'repo_remote')),
+                    'su %s -c \'git config user.email %s@fake.faux\'' % (st['login'], st['login']),
+                    'su %s -c \'git config user.name %s\'' % (st['login'], st['login'])
                 )), 
                 capture=False
             )
