@@ -122,6 +122,7 @@ class Students(Controller):
         for st in self._query():
             shell.cmd(
                 ' && '.join((
+                    'cd /home/%s' % st['login'],
                     'su %s' % st['login'],
                     'git init -b %s' % st['login'],
                     'git remote add origin /srv/git/studentlab.git',
