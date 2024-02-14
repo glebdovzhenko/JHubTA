@@ -126,11 +126,26 @@ class Students(Controller):
                     'su %s -c \'git init -b %s\'' % (st['login'], st['login']),
                     'su %s -c \'git remote add origin %s\'' % (st['login'], self.app.config.get('jhta', 'repo_remote')),
                     'su %s -c \'git config user.email %s@fake.faux\'' % (st['login'], st['login']),
-                    'su %s -c \'git config user.name %s\'' % (st['login'], st['login'])
+                    'su %s -c \'git config user.name %s\'' % (st['login'], st['login']),
+                    'su %s -c \'nbdev_install_hooks\'' % st['login']
                 )), 
                 capture=False
             )
-    
+
+    @ex(help='Commits and pushes all changes to the remote')
+    def collect(self):
+        mask = '.ipynb'
+        for st in self._query():
+            shell.cmd(
+                ' && '.join((
+                    'cd /home/%s' % st['login'],
+                    'su %s -c \'git add %s\'' % (st['login'], mask),
+                    'su %s -c \'git commit -m \"$(date)\"\'' % st['login'],
+                    'su %s -c \'git push origin %s\'' % (st['login'], st['login'])
+                )), 
+                capture=False
+            )
+   
     @ex(help='check the database status')
     def check(self):
         home_ok, home_not_ok = self.check_home()

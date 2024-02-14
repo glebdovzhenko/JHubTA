@@ -5,3 +5,4 @@ cement[colorlog]
 tinydb
 rich
 GitPython
+nbdev
