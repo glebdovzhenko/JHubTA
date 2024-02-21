@@ -4,6 +4,7 @@ from rich.panel import Panel
 from tinydb import Query
 from git import Repo, exc
 import os
+import jinja2
 
 
 class Students(Controller):
@@ -117,35 +118,30 @@ class Students(Controller):
             tb = self.app.db.table('students')
             tb.insert(student)
 
-    @ex(help='Initiates a user repository')
-    def init_repo(self):
-        for st in self._query():
-            shell.cmd(
-                ' && '.join((
-                    'cd /home/%s' % st['login'],
-                    'su %s -c \'git init -b %s\'' % (st['login'], st['login']),
-                    'su %s -c \'git remote add origin %s\'' % (st['login'], self.app.config.get('jhta', 'repo_remote')),
-                    'su %s -c \'git config user.email %s@fake.faux\'' % (st['login'], st['login']),
-                    'su %s -c \'git config user.name %s\'' % (st['login'], st['login']),
-                    'su %s -c \'nbdev_install_hooks\'' % st['login']
-                )), 
-                capture=False
-            )
+    @ex(help='Run a command from template',
+        arguments=[
+            (['-c', '--cmd'],
+             {'help': 'cmd template to run (use --cmd=context for template rendering context)',
+              'action': 'store',
+              'dest': 'cmd'}),
+             ])
+    def run(self):
+        if self.app.pargs.cmd == 'context':
+            for st in self._query():
+                self.app.console.print(st)
+            return
 
-    @ex(help='Commits and pushes all changes to the remote')
-    def collect(self):
-        mask = '*.ipynb'
+        tt = jinja2.Template(source=self.app.pargs.cmd)
         for st in self._query():
-            shell.cmd(
-                ' && '.join((
-                    'cd /home/%s' % st['login'],
-                    'su %s -c \'git add %s\'' % (st['login'], mask),
-                    'su %s -c \'git commit -m \"$(date)\"\'' % st['login'],
-                    'su %s -c \'git push origin %s\'' % (st['login'], st['login'])
-                )), 
-                capture=False
-            )
-   
+            context = {
+                'cmd': tt.render(**st)
+            }
+            context['out'], context['err'], context['retcode'] = shell.cmd(context['cmd'], capture=True)
+
+            self.app.console.print(
+                self.app.render(
+                    context, 'shell-cmd.py', out=None
+            ))
     @ex(help='check the database status')
     def check(self):
         home_ok, home_not_ok = self.check_home()

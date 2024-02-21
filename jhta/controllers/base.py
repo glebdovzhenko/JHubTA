@@ -35,35 +35,3 @@ class Base(Controller):
 
         self.app.args.print_help()
 
-    @ex(help='deploys a selected filename to a list of students',
-        arguments=[
-            ([ '-f', '--file' ],
-             {'help': 'which file to deploy',
-              'action': 'store',
-              'dest': 'file'}),
-            ([ '-g', '--group-id' ],
-             {'help': 'group id',
-              'action': 'store',
-              'dest': 'group_id'}),
-            ([ '-n', '--name' ],
-             {'help': 'name',
-              'action': 'store',
-              'dest': 'name'}),
-            ([ '-sn', '--surname' ],
-             {'help': 'surname',
-              'action': 'store',
-              'dest': 'surname'}),
-            ([ '-l', '--login' ],
-             {'help': 'login',
-              'action': 'store',
-              'dest': 'login'}),
-        ])
-    def deploy(self):
-        if self.app.pargs.file is None:
-            self.app.console.print(Panel('[red] A filename must be provided'))
-        if self.app.pargs.group_id is not None:
-            pass
-        # g_id_match = self.app.db.table('students').search(
-        #     Query().group_id == g_id
-        # )
-
